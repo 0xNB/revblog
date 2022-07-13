@@ -1,0 +1,50 @@
+I"<p>Valve Anti Cheat is an userland Anti Cheat made to scan and detect external cheats (other processes) or internal cheats (in game processes).</p>
+
+<p>As it is a userland level anticheat tool that means that it usually runs within the process that its meant to protect. It also can only monitor other user-land software whilst kernel level cheats can not be detected from user land.</p>
+
+<p>VAC-Anti-Cheat thus can not detect hardware cheats (unless they are visible from userland) or kernel-land cheats (only enumerate list of drivers, check names and signatures and lower the trust factor sent to Valve if you allow unsigned drivers).</p>
+
+<p>There are two different parts of VAC to consider:</p>
+
+<ul>
+  <li>VAC the Anti-Cheat made by Valve for a lot of different games</li>
+  <li>Custom VAC modules that can be applied for specific games like Call of Duty or CSGO.</li>
+</ul>
+
+<p>Both are delivered as modules (executables), each time a VAC protected game is launched. They are downloaded and executed to check for specific “cheat” patterns.</p>
+
+<p>NOTE: Some games themselves include Anti-Cheat behaviors like CSGO, however those Anti-Cheat behaviours are developed by the same people as VAC so considered also as a part of Valve-Anti-Cheat.</p>
+
+<h1 id="architecture"><a href="#header-1"></a>Architecture</h1>
+
+<p>After reading up on work done by good game hackers like <a href="r0da">https://whereisr0da.github.io/blog/posts/2021-03-10-quick-vac/</a> we can narrow our hunt for Valve Anti Cheat down to <code class="language-plaintext highlighter-rouge">steamservice.dll</code> which could be used in <code class="language-plaintext highlighter-rouge">SteamService.exe</code> or in <code class="language-plaintext highlighter-rouge">steam.exe</code>, if Steam is executed with administrator rights.</p>
+
+<p>Valve splits the functionality of VAC3 into several modules. Those get streamed onto your computer while playing a VAC protected game. For this procedure they load steamclient.dll either into their steamservice.exe or if you start Steam with Admin privileges, into steam.exe.</p>
+
+<h2 id="steamservicedll"><a href="#header-2"></a>steamservice.dll</h2>
+
+<p>The <code class="language-plaintext highlighter-rouge">steamservice.dll</code> found in <code class="language-plaintext highlighter-rouge">bin/</code> is a 32bit executable that holds the ValveAntiCheat core module.</p>
+
+<p>Interestingly metadata also hasn’t been removed from the file, which leaks some of Valves internal build architecture. Following was leaked by <code class="language-plaintext highlighter-rouge">exiftool</code>: Full build address of the internal builder <code class="language-plaintext highlighter-rouge">buildbot_steam-relclient-win32-builder_steam_rel_client_win32@steam-relclient-win32-builder</code>.
+From the pdb information we also get that Steam was build with a Windows PC from pdb path: 
+<code class="language-plaintext highlighter-rouge">c:\buildslave\steam_rel_client_win32\build\bin\ClientRelease\bin\steamservice.pdb</code>.</p>
+
+<h3 id="how-vac-is-loading-libraries"><a href="#hooking_into_vac"></a>How VAC is Loading Libraries</h3>
+
+<p>With the information provided by game hackers one could guess that Valve is somehow loading VAC modules during runtime with LoadLibrary or just manually map them to their process. Targets of interest would be calls like <code class="language-plaintext highlighter-rouge">LoadLibrary</code>, <code class="language-plaintext highlighter-rouge">LoadLibraryEx</code>, <code class="language-plaintext highlighter-rouge">CreateFileW</code>, <code class="language-plaintext highlighter-rouge">WriteFile</code> and <code class="language-plaintext highlighter-rouge">NtAllocateVirtualMemory</code>.</p>
+
+<p>Hooking functions basically means that the game or program “detours” the flow of execution to a region of code that is controlled by the attacker.</p>
+
+<h2 id="encryption-and-hashing"><a href="#encryption"></a>Encryption and Hashing</h2>
+
+<p>VAC uses several encryption / hashing methods:</p>
+
+<ul>
+  <li>MD5 - hashing data read from process memory</li>
+  <li>ICE - decryption of imported functions names and encryption of scan results</li>
+  <li>CRC32 - hashing table of WinAPI functions addresses</li>
+  <li>Xor - encryption of function names on stack, e.g NtQuerySystemInformation. Strings are xor-ed with ^ or &gt; or &amp; char.</li>
+</ul>
+
+<p>However Strings are not encrypted in the <code class="language-plaintext highlighter-rouge">steamservice.dll</code> For example we get Strings that look like <code class="language-plaintext highlighter-rouge">.rdata:1024D2E0	000000CC	C	\nHey, you just set %s's number values to be 0.  Is that what you wanted?\n\nIf you do </code>%s = 123<code class="language-plaintext highlighter-rouge">, you will set the convar to </code>= 123<code class="language-plaintext highlighter-rouge"> which becomes </code>0<code class="language-plaintext highlighter-rouge"> for numeric uses.\nDid you mean to do </code>%s %s<code class="language-plaintext highlighter-rouge"> instead?\n</code> which is some kind of internal debug conversation maybe?</p>
+:ET

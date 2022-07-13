@@ -1,0 +1,8 @@
+I"Æ<h1 id="module-loading"><a href="#header-1"></a>Module Loading</h1>
+
+<p>Valve Anti Cheat is an userland Anti Cheat made to scan and detect external cheats (other processes) or internal cheats (in game processes).</p>
+
+<p>As it is a userland level anticheat tool that means that it usually runs within the process that its meant to protect. It also can only monitor other user-land software whilst kernel level cheats can not be detected from user land.</p>
+
+<p>VAC anti cheat thus can not detect hardware cheats (unless they are visible from userland) or kernel-land cheats (only enumerate list of drivers, check names and signatures and lower the trust factor sent to Valve if you allow unsigned drivers)</p>
+:ET

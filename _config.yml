@@ -1,0 +1,36 @@
+title: RevAntiCheat
+description: "A blog about the development of RevAntiCheat"
+author:
+  name: "Niklas Betten"
+  email: "ungep@student.kit.edu"
+  url: "0.0.0.0"
+
+baseurl: /
+
+source: .
+destination: ./_site
+permalink: /:title
+paginate: 3
+paginate_path: /page/:num/
+
+defaults:
+  -
+    scope:
+      path: ""
+      type: "posts"
+    values:
+      layout: "post"
+
+future: true
+plugins:
+  - jekyll-seo-tag
+  - jekyll-paginate
+  - jekyll-sitemap
+  - jekyll-scholar
+
+scholar: 
+  style: modern-language-association
+
+# Custom variables
+owner : "Niklas Betten"
+year : "2022"
