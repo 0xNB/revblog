@@ -1,11 +1,11 @@
 ---
-title: x86 API Hooking
+title: x86 API Hooking on Windows
 published: true
 ---
 
-Function or API hooking allows reverse engineers or hackers to tamper with flow of execution during runtime. For example if we want to examine what a function does during execution we can hook it, print the arguments and then keep executing the original functions. Likewise hackers might be interested in inserting malicious code in the hooked function calls and then execute them during runtime.
+Function or API hooking allows reverse engineers or hackers to tamper with flow of execution during runtime. For example if we want to examine what a function does during execution we can hook it, print the arguments and then keep executing the original function. Likewise hackers might be interested in inserting malicious code in the hooked function calls and then execute them during runtime.
 
-This blog entry will cover most basic function hooking methods and deep dive into implemenation.
+This blog entry will cover most basic function hooking methods and deep dive into basic implemenation examples.
 
 https://guidedhacking.com/threads/how-to-hook-functions-code-detouring-guide.14185/
 http://jbremer.org/x86-api-hooking-demystified/
@@ -18,8 +18,8 @@ If a function accepts a so called hotpatch then it has been prepared in a certai
 
 ## Source Modification 
 
-Function hooks can be inserted statically or dynamically. For example in static analysis the entry point of a function within a module can be found. This entry point can then be altered to instead dynamically load some other library or module and the nhave it execute desired methods within that loaded library. 
-Another approach is by altering the impor ttable of a nexecutable. The table can be modified to load any additional library as well as change what external code is invoked when a function is called by the application. 
+Function hooks can be inserted statically or dynamically. For example in static analysis the entry point of a function within a module can be found. This entry point can then be altered to instead dynamically load some other library or module and then have it execute desired methods within that loaded library. 
+Another approach is altering the import table of an executable. The table can be modified to load any additional library as well as change what external code is invoked when a function is called by the application. 
 
 ## Runtime Modification
 
@@ -43,7 +43,19 @@ To circumvent this problem a hook can also be inserted in the middle of a functi
 
 ## External Detouring / Hooking
 
-Another way of hooking is to inject the own code into memory of another process by writing to process memory with `WriteProcessMemory`. This however is more complicated than injecting a own `dll` into the process since you need to directly process shellcode from memory. 
+Another way of hooking is to inject own code into memory of another process by writing to process memory with `WriteProcessMemory`. However this is slightly more complicated than injecting your `dll` into the process. The written memory needs to be shellcode instead of compiling your code to a native `.dll`. 
+
+## On Stolen Bytes
+
+When hooking into functions its important to execute the overwritten instructions after the hook in order to keep the state of the program. 
+
+## Code Caves
+
+In order to be less noisy when using a detour injected code can be placed in regions of executable memory that have already been allocated but are not used by the process. Protection can be modified with `VirtualProtect` or `VirtualProtectEx`
+
+## Background Information on Linux function hooking
+
+Hooking API-Calls on Linux is significantly easier than hooking API-Calls on Windows. For Linux you can overwrite loaded shared objects by specifying the `LD_PRELOAD` with your own `.so` files. 
 
 # Technical Implementation
 
@@ -121,7 +133,7 @@ After injecting a DLL into the process that should receive the hook we can overw
 
 A stealthier way of hooking is to overwrite entries in the `import address table`. Splicing can be easily detected by checking the preamble of functions for maliciously inserted code, so anti-virus or anti-cheat software can react by marking the process as maliciously tampered with. 
 
-For example to overwrite the 
+For example to overwrite the import address table we move from the DOS header to the NT header of a PE executable. After finding the import table we write the address of the imported function with the address of our injeted function. Thus the process executes our function instead of the mapped original function. 
 
 ```cpp
 #include <windows.h>
