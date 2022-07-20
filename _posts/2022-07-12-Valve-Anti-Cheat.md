@@ -18,10 +18,14 @@ Both are delivered as modules (executables), each time a VAC protected game is l
 
 NOTE: Some games themselves include Anti-Cheat behaviors like CSGO, however those Anti-Cheat behaviours are developed by the same people as VAC so considered also as a part of Valve-Anti-Cheat. 
 
+# 0 List of Tools
 
-# [](#header-1)Architecture
+Majority of games do not have source code available. In order to understand games internals and stored gameplay relevant data, a cheat developer needs to reverse engineer location and structures of such data. Most common tools are IDA, CheatEngine, x64dbg, ReClass and Ghidra. 
 
-After reading up on work done by good game hackers like [https://whereisr0da.github.io/blog/posts/2021-03-10-quick-vac/](r0da) we can narrow our hunt for Valve Anti Cheat down to `steamservice.dll` which could be used in `SteamService.exe` or in `steam.exe`, if Steam is executed with administrator rights. 
+
+# [](#header-1) 1 Architecture
+
+After reading up on work done by good game hackers like [r0da](https://whereisr0da.github.io/blog/posts/2021-03-10-quick-vac/) we can narrow our hunt for Valve Anti Cheat down to `steamservice.dll` which could be used in `SteamService.exe` or in `steam.exe`, if Steam is executed with administrator rights. 
 
 Valve splits the functionality of VAC3 into several modules. Those get streamed onto your computer while playing a VAC protected game. For this procedure they load steamclient.dll either into their steamservice.exe or if you start Steam with Admin privileges, into steam.exe.
 
@@ -38,6 +42,7 @@ From the pdb information we also get that Steam was build with a Windows PC from
 With the information provided by game hackers one could guess that Valve is somehow loading VAC modules during runtime with LoadLibrary or just manually map them to their process. Targets of interest would be calls like `LoadLibrary`, `LoadLibraryEx`, `CreateFileW`, `WriteFile` and `NtAllocateVirtualMemory`. 
 
 Hooking functions basically means that the game or program "detours" the flow of execution to a region of code that is controlled by the attacker. 
+We detour `steamservice.dll` to take us to a code region and examine how the software loads modules on the fly. 
 
 ## [](#encryption)Encryption and Hashing
 
@@ -49,3 +54,19 @@ VAC uses several encryption / hashing methods:
 - Xor - encryption of function names on stack, e.g NtQuerySystemInformation. Strings are xor-ed with ^ or > or & char.
 
 However Strings are not encrypted in the `steamservice.dll` For example we get Strings that look like `.rdata:1024D2E0	000000CC	C	\nHey, you just set %s's number values to be 0.  Is that what you wanted?\n\nIf you do `%s = 123`, you will set the convar to `= 123` which becomes `0` for numeric uses.\nDid you mean to do `%s %s` instead?\n` which is some kind of internal debug conversation maybe? 
+
+# [](#modules) 2 List of Modules
+
+Following is a compiled list of modules that get loaded for VAC after being started. 
+
+
+# 3 Sources
+
+https://is.muni.cz/th/qe1y3/bk.pdf
+https://www.unknowncheats.me/forum/anti-cheat-bypass/354594-analysis-valve-anti-cheat.html
+https://whereisr0da.github.io/blog/posts/2021-03-10-quick-vac/
+https://madelinemiller.dev/blog/anticheat-an-analysis/
+https://www.unknowncheats.me/wiki/Valve_Anti-Cheat:VAC_external_tool_detection_(and_more)
+https://www.unknowncheats.me/forum/anti-cheat-bypass/481127-anti-cheats-create-signatures.html
+http://lausiv.tech/posts/1
+https://github.com/ajkhoury/ReClassEx
