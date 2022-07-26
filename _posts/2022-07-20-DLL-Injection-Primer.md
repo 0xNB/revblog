@@ -19,7 +19,7 @@ Unlike in Linux where ELF images can be position indpeendent executables and pos
 
 Windows ASLR does not work this way. Each DLL or EXE image gets assigned a random load address by the kernel the first time its used, and as additionaly instanes of the DLL or EXE are loaded, they receive the same load address. Only rebooting can guarantee fresh base addresses for all images systemwide. [[2](https://www.mandiant.com/resources/six-facts-about-address-space-layout-randomization-on-windows)]. This can be used for example in attacks that exploit programs that automatically restart after crashing to find out the windows base address. 
 
-This leads to the following observation: 
+This leads to the following observation for Windows: 
 
 **If an attacker can discover where a DLL is loaded in any process, the attacker knows where it is loaded in all processes**
 
@@ -50,3 +50,4 @@ CloseHandle(Process);
 https://en.wikipedia.org/wiki/Dynamic-link_library
 [1] https://docs.microsoft.com/en-us/troubleshoot/windows-client/deployment/dynamic-link-library
 [2] https://www.mandiant.com/resources/six-facts-about-address-space-layout-randomization-on-windows
+[3] https://is.muni.cz/th/qe1y3/bk.pdf

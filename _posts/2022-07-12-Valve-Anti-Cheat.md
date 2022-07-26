@@ -25,11 +25,37 @@ Majority of games do not have source code available. In order to understand game
 
 # [](#header-1) 1 Architecture
 
-After reading up on work done by good game hackers like [r0da](https://whereisr0da.github.io/blog/posts/2021-03-10-quick-vac/) we can narrow our hunt for Valve Anti Cheat down to `steamservice.dll` which could be used in `SteamService.exe` or in `steam.exe`, if Steam is executed with administrator rights. 
+After reading up on work done by good game hackers like [r0da](https://whereisr0da.github.io/blog/posts/2021-03-10-quick-vac/) and now Valve Employee Tomas Curda [[1](https://is.muni.cz/th/qe1y3/bk.pdf)] we can narrow our hunt down to a couple of files.
 
-Valve splits the functionality of VAC3 into several modules. Those get streamed onto your computer while playing a VAC protected game. For this procedure they load steamclient.dll either into their steamservice.exe or if you start Steam with Admin privileges, into steam.exe.
+## Steam Client
 
-## [](#header-2)steamservice.dll
+The Steam Client occassionally tries to load the `winhttp.dll` into memory for ?? reason, when downloading a new game.
+
+## VAC 2 
+
+VAC is used in two versions VAC2 and VAC3. The older VAC2 version can be found inside steams resource folder and is called `sourceinit.dat`. It likely hasn't been updated in a while since the compile stamp of the latest version is `Wed Nov 03 16:01:46 2021`.   
+The DLL is loaded once a game is ran by a function inside `steamclient.dll` that copies the DLL into system temp directory and loads it with `LoadLibary`.
+
+There are mutliple disadvantages with this approach:
+
+- Library is part of steam, a steam client update is required to update anti-cheat
+- Whole Anti-cheat code is stored in users's machine and is therefore easy to analyze circumvent
+- Trivial to detect anti-cheat updates (by using checksums)
+
+
+## VAC 3 
+
+For Valve Anti Cheat 3 we can narrow it down to `steamservice.dll` which could be used in `SteamService.exe` or in `steam.exe`, if Steam is executed with administrator rights. VAC3 solves the problems that VAC2 had namely that VAC isn't part of the Steam client anymore and can be updated anytime or even multiple libraries can be loaded at he same time. The cheat developer never has full access to the whole anti-cheat code at once. 
+
+The structure of the library is similar between VAC2 an VAC3 with the main difference being that instead of holding the whole anti cheat VAC 3 usually only contains one or two scan functions at the same time. 
+
+Valve splits the functionality of VAC3 into several modules. Those get streamed onto your computer while playing a VAC protected game. For this procedure they load `steamclient.dll` either into their `steamservice.exe` or if you start Steam with Admin privileges, into `steam.exe`.
+
+### When VAC is active
+
+
+
+### [](#header-2)steamservice.dll
 
 The `steamservice.dll` found in `bin/` is a 32bit executable that holds the ValveAntiCheat core module. 
 
@@ -62,7 +88,8 @@ Following is a compiled list of modules that get loaded for VAC after being star
 
 # 3 Sources
 
-https://is.muni.cz/th/qe1y3/bk.pdf
+[1] bachelor's thesis https://is.muni.cz/th/qe1y3/bk.pdf
+[2] anti breakpoint tricks http://waleedassar.blogspot.com/2012/11/defeating-memory-breakpoints.html
 https://www.unknowncheats.me/forum/anti-cheat-bypass/354594-analysis-valve-anti-cheat.html
 https://whereisr0da.github.io/blog/posts/2021-03-10-quick-vac/
 https://madelinemiller.dev/blog/anticheat-an-analysis/
