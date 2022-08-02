@@ -42,14 +42,13 @@ There are mutliple disadvantages with this approach:
 - Whole Anti-cheat code is stored in users's machine and is therefore easy to analyze circumvent
 - Trivial to detect anti-cheat updates (by using checksums)
 
-
 ## VAC 3 
 
-For Valve Anti Cheat 3 we can narrow it down to `steamservice.dll` which could be used in `SteamService.exe` or in `steam.exe`, if Steam is executed with administrator rights. VAC3 solves the problems that VAC2 had namely that VAC isn't part of the Steam client anymore and can be updated anytime or even multiple libraries can be loaded at he same time. The cheat developer never has full access to the whole anti-cheat code at once. 
+For Valve Anti Cheat 3 we can narrow it down to `steamservice.dll` which could be used in `SteamService.exe` or in `steam.exe`. If Steam is executed with administrator rights `steamservice.exe` gets executed. VAC3 solves the problems that VAC2 had namely that VAC isn't part of the Steam client anymore and can be updated anytime or even multiple libraries can be loaded at he same time. The cheat developer never has full access to the whole anti-cheat code at once. 
 
 The structure of the library is similar between VAC2 an VAC3 with the main difference being that instead of holding the whole anti cheat VAC 3 usually only contains one or two scan functions at the same time. 
 
-Valve splits the functionality of VAC3 into several modules. Those get streamed onto your computer while playing a VAC protected game. For this procedure they load `steamclient.dll` either into their `steamservice.exe` or if you start Steam with Admin privileges, into `steam.exe`.
+Valve splits the functionality of VAC3 into several modules. Those get streamed onto your computer while playing a VAC protected game. For this procedure they load `steamclient.dll` either into their `steamservice.exe` or if you start Steam with Admin privileges, into `steam.exe`. The `steamclient.dll` is not the UI but more like the backend for steam. It's the core engine of the Steam Client. 
 
 ### When VAC is active
 
@@ -97,3 +96,4 @@ https://www.unknowncheats.me/wiki/Valve_Anti-Cheat:VAC_external_tool_detection_(
 https://www.unknowncheats.me/forum/anti-cheat-bypass/481127-anti-cheats-create-signatures.html
 http://lausiv.tech/posts/1
 https://github.com/ajkhoury/ReClassEx
+https://partner.steamgames.com/doc/sdk/api?
