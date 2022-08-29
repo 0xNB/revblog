@@ -44,14 +44,24 @@ There are mutliple disadvantages with this approach:
 
 ## VAC 3 
 
-For Valve Anti Cheat 3 we can narrow it down to `steamservice.dll` which could be used in `SteamService.exe` or in `steam.exe`. If Steam is executed with administrator rights `steamservice.exe` gets executed. VAC3 solves the problems that VAC2 had namely that VAC isn't part of the Steam client anymore and can be updated anytime or even multiple libraries can be loaded at he same time. The cheat developer never has full access to the whole anti-cheat code at once. 
+For Valve Anti Cheat 3 we can narrow it down to `bin/steamservice.dll` or the process `steamservice.exe`. If Steam is executed with administrator rights `steamservice.dll` is loaded into `steam.exe` otherwise the `steamservice.exe` gets executed as a separate process. 
+
+We also hve the `bin/steamclient.dll`.
+The `bin/steamclient.dll` is not the UI but more like the backend for steam. It's the core engine of the Steam Client. 
+
+This architectural decision of VAC3 solves the problems that VAC2 had namely that VAC isn't part of the Steam client anymore and can be updated anytime or even multiple libraries can be loaded at he same time. The cheat developer never has full access to the whole anti-cheat code at once. 
 
 The structure of the library is similar between VAC2 an VAC3 with the main difference being that instead of holding the whole anti cheat VAC 3 usually only contains one or two scan functions at the same time. 
 
-Valve splits the functionality of VAC3 into several modules. Those get streamed onto your computer while playing a VAC protected game. For this procedure they load `steamclient.dll` either into their `steamservice.exe` or if you start Steam with Admin privileges, into `steam.exe`. The `steamclient.dll` is not the UI but more like the backend for steam. It's the core engine of the Steam Client. 
+### Dumping VAC modules
 
-### When VAC is active
+When running games the `bin/steamservice.dll` is responsible for loading modules of VAC. In the following graphic we have identified the part of the binary that is responsible for loading libraries either via directly mapping them or loading them with the WinApi call `LoadLibary`. You can find this function with the pattern `74 47 6A 01 6A 00`, after injecting your own `.dll` into the process or from a debugger, however you like. 
 
+![Steam Loading Libraries](/assets/steamloadlibrary.png)
+
+After patching this instruction we can simply hook calls to `LoadLibrary` to create a map of modules loaded by Steam. My approach was to build a database of all modules that are loaded this way and checksum then for identification. The graphic below shows the old VAC2 module being loaded into steam when starting the Source Engine game Team Fortress 2.
+
+![Steam Loading Libraries](/assets/vac2loading.png)
 
 
 ### [](#header-2)steamservice.dll
@@ -87,8 +97,31 @@ However Strings are not encrypted in the `steamservice.dll` For example we get S
 The `SteamService.exe` manually maps the VAC modules, but we can force Steam to use `LoadLibrary` by byte patching the following instruction:
 
 ```
-.text:1002A84C jz short loc_1002A895 -> jmp short loc_1002A895
+.text:1002A8 4C jz short loc_1002A895 -> jmp short loc_1002A895
 ```
+
+# VAC Capabilities
+
+While VAC is loaded it has the capability of and has been seen:
+
+    Scanning all your files
+    Scanning all running processes
+    Scanning your registry
+    Enumerating all open handles
+    Scanning for hooks
+    Signature scanning for known cheats
+
+# How to Bypass
+
+
+    Encrypt all strings
+    Randomize module, process, window & window class names
+    Use polymorphic code to evade signature detection
+    Stay off the disk as much as possible, stream everything into memory
+    Clean all your tracks, avoid registry keys etc...
+    Consider hooking and completely spoofing all VAC scans
+
+
 
 # [](#modules) 2 List of Modules August 2922
 
@@ -156,3 +189,4 @@ https://partner.steamgames.com/doc/sdk/api?
 https://github.com/zyhp/vac3_inhibitor
 https://www.unknowncheats.me/forum/anti-cheat-bypass/281883-dumping-vac-modules.html
 http://dev.cra0kalo.com/?s=dump
+https://github.com/zyhp/vac3_inhibitor/blob/master/vac3_inhibitor/hooks.cpp (Vac3 hooks in CPP)
