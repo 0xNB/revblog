@@ -251,3 +251,9 @@ void DetourIATptr(const char *function, void *newfunction, HMODULE module) {
 	VirtualProtect(funcptr, sizeof(LPVOID), oldrights, &newrights);
 }
 ```
+
+
+# TODO:
+
+- Write own hooking library to patch publicly known locations of fucntions or patterns 
+- Maybe write other tool that dumps modules
