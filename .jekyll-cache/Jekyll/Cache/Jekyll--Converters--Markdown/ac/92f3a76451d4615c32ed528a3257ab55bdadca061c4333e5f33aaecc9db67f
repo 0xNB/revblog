@@ -1,7 +1,0 @@
-I"µ<h1 id="connecting-to-the-vm"><a href="#header-1"></a>Connecting to the VM</h1>
-
-<p>Host the service on the VM to listen on all addresses like <code class="language-plaintext highlighter-rouge">--host 0.0.0.0</code>. Connect to the Linux Server by using the local loopback address on windows which is also part of the IP which gets listened on.</p>
-
-<p>Otherwise if its hosted on the loopback address <code class="language-plaintext highlighter-rouge">127.0.0.1</code> you can connect to it with the address you get in <code class="language-plaintext highlighter-rouge">ip addr</code> with the tags <code class="language-plaintext highlighter-rouge">&lt;BROADCAST,MULTICAST,UP&gt;</code></p>
-
-:ET
